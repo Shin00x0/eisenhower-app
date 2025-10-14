@@ -1,0 +1,13 @@
+
+Funcionalidades que faltan (tiempo de desarrollo 30 min):
+- guardado de clave id google auth en supabase
+- guardado de clave id google auth en localstorage
+- hacer un filtrado de task por dia, semana, mes
+- agregar un boton de completado a las task
+- implementar scroll con una algura minima task
+
+test:
+- Verificacion de politicas de supabase seguridad
+- Testeo componenetes task period
+- Testeo store task, user
+- Testeo de composables task, user
