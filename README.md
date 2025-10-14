@@ -1,3 +1,10 @@
+# app
+
+![alt text](https://github.com/Shin00x0/eisenhower-app/blob/main/doc/images/Captura%20de%20pantalla%202025-10-13%20a%20la(s)%2021.10.47.png)
+![alt text](https://github.com/Shin00x0/eisenhower-app/blob/main/doc/images/Captura%20de%20pantalla%202025-10-13%20a%20la(s)%2021.11.10.png)
+
+
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
