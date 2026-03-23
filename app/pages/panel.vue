@@ -9,7 +9,7 @@ import type { Task, TimePeriod } from '~/services/types/task';
 const isEditing = ref(false)
 
 // componenet:
-const selectedPeriod = ref<String>('day')
+const selectedPeriod = ref<'day' | 'week' | 'month'>('day')
 const taskCounts = ref({
     day: 5,
     week: 12,
@@ -126,6 +126,7 @@ async function handleDelete(quadrantId: QuadrantKey, taskId: number) {
                     </div>
                     <p class="text-slate-500 text-lg animate-fade-in">Organiza tus tareas por prioridad y urgencia de Hoy</p>
                 </div>
+
 
             <time-period-select 
                 v-model="selectedPeriod"

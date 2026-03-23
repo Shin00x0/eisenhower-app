@@ -65,9 +65,9 @@ function selectPeriod(value : string) {
                 
                 <!-- Badge de contador -->
                 <transition name="fade">
-                    <span v-if="modelValue === period.value && taskCounts[period.value]" 
+                    <span v-if="modelValue === period.value && taskCounts[period.value as keyof TaskCounts] > 0" 
                             class="ml-1 px-2 py-0.5 bg-white bg-opacity-30 rounded-full text-xs font-bold relative z-10 animate-scale-in">
-                        {{ taskCounts[period.value] }}
+                        {{ taskCounts[period.value as keyof TaskCounts] }}
                     </span>
                 </transition>
                 
