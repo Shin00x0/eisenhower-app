@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { watch } from 'vue'
 import { useTask } from '../composables/useTask';
 import { useQuadrants } from '../composables/useQuadrants';
 import type { Task, TimePeriod } from '~/services/types/task';
+
+
+const isEditing = ref(false)
 
 // componenet:
 const selectedPeriod = ref<String>('day')
@@ -15,19 +18,61 @@ const taskCounts = ref({
 const currentPeriodId = 'day'
 
 const taskInput = ref(null)
+const editingTaskId = ref<number | null>(null)
+const editingQuadrantId = ref<QuadrantKey | null>(null)
+
+function resetEditingState() {
+    activeQuadrant.value = null
+    editingTaskId.value = null
+    editingQuadrantId.value = null
+    newTask.value = ''
+}
+
 function openInput(quadrantId : QuadrantKey) {
-    activeQuadrant.value = quadrantId;
+    activeQuadrant.value = quadrantId
     nextTick(() => {
         const inputs = taskInput;
         if (inputs) {
             const input = Array.isArray(inputs) ? inputs[0] : inputs;
+            // input is not a function error, entonces verifico si es un array o no, y luego le hago focus
             input?.value.focus();
         }
     });
 }
+
+function editInputTask(quadrantId: QuadrantKey, taskId: number) {
+    activeQuadrant.value = quadrantId
+    editingQuadrantId.value = quadrantId
+    editingTaskId.value = taskId
+
+    // no existe task, existe task_data, entonces busco en task_data
+    const task = tasks_data.value.find(t => t.id === taskId)
+    if (task) {
+        newTask.value = task.title
+    }
+    nextTick(() => {
+        const inputs = taskInput;
+        if (inputs) {
+            const input = Array.isArray(inputs) ? inputs[0] : inputs;
+            input?.focus();
+        }
+    });
+}
+
+async function handleSaveTask(quadrantId: QuadrantKey) {
+    if (editingTaskId.value !== null) {
+        await handleUpdate(editingTaskId.value, { title: newTask.value })
+        resetEditingState()
+    } else {
+        await handleAdd(quadrantId, currentPeriodId)
+        resetEditingState()
+    }
+}
+
+
 // llamando composables:
 const { quadrants,newTask,tasks,activeQuadrant,addLocalTask,deleteLocalTask,setTask  } = useQuadrants()
-const { tasks_data, loading, addTask, deleteTask } = useTask()
+const { tasks_data, loading, addTask, deleteTask,updateTask } = useTask()
 
 watch(
   tasks_data,
@@ -40,9 +85,16 @@ async function handleAdd(quadrantId: QuadrantKey, timePeriodid: TimePeriod) {
     const data = addLocalTask(quadrantId,timePeriodid) as Task
     await addTask(data)
 }
+async function handleUpdate(taskId: number, updatedData: Partial<Task>) {
+    // Aquí podrías actualizar la tarea localmente si es necesario
+    // Luego llamas a la función del store para actualizar en la base de datos
+    await updateTask(taskId, updatedData)
+}
 async function handleDelete(quadrantId: QuadrantKey, taskId: number) {
+    console.log(`Eliminando tarea con id ${taskId} del cuadrante ${quadrantId}`)
     const index_task = deleteLocalTask(quadrantId,taskId) as number
-    await deleteTask(index_task)
+    console.log(index_task);
+    await deleteTask(taskId)
 }
 
 </script>
@@ -110,6 +162,14 @@ async function handleDelete(quadrantId: QuadrantKey, taskId: number) {
                                         </svg>
                                         <span class="text-slate-700">{{ task.title }}</span>
                                     </div>
+                                    <!-- Button edit task-->
+                                    <button @click="editInputTask(quadrant.id as QuadrantKey, task.id)"
+                                            class="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-blue-50 rounded-lg hover:scale-110 mr-2">
+                                        <svg class="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+
                                     <button @click="handleDelete(quadrant.id as QuadrantKey, task.id)"
                                             class="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-red-50 rounded-lg hover:scale-110">
                                         <svg class="w-4 h-4 text-slate-400 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,16 +185,17 @@ async function handleDelete(quadrantId: QuadrantKey, taskId: number) {
                             <div v-if="activeQuadrant === quadrant.id" class="flex gap-2">
                                 <input type="text"
                                        v-model="newTask"
-                                       @keyup.enter="handleAdd(quadrant.id,currentPeriodId)"
-                                       @keyup.esc="activeQuadrant = null"
-                                       placeholder="Nueva tarea..."
+                                       @keyup.enter="handleSaveTask(quadrant.id)"
+                                       @keyup.esc="resetEditingState()"
+                                       :placeholder="editingTaskId ? 'Editar tarea...' : 'Nueva tarea...'"
                                        class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-400 focus:outline-none bg-white focus:ring-2 focus:ring-slate-200 transition-all duration-200"
                                        ref="taskInput">
-                                <button @click="handleAdd(quadrant.id,currentPeriodId)"
+                                <button @click="handleSaveTask(quadrant.id)"
                                         :class="['px-6 py-3 rounded-xl bg-gradient-to-r', quadrant.color, quadrant.hoverColor, 'text-white font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 active:scale-95']">
-                                    Añadir
+                                    {{ editingTaskId ? 'Editar' : 'Añadir' }}
                                 </button>
                             </div>
+
                             <button v-else
                                     @click="openInput(quadrant.id as QuadrantKey)"
                                     class="w-full py-3 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400 hover:text-slate-600 hover:bg-white transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95">

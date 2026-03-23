@@ -25,6 +25,9 @@ export function useTask() {
     async function deleteTask(id: number) {
         await taskStore.deleteTask(id)
     }
+    async function updateTask(id_task: number, updatedData: Partial<Task>) {
+        await taskStore.updateTask(id_task, updatedData)
+    }
 
     return {
         tasks_data,
@@ -33,6 +36,7 @@ export function useTask() {
 
         addTask,
         deleteTask,
+        updateTask,
 
         taskStore
     }

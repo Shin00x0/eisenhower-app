@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getAllTask,createTask,deleteTask,updateTask } from '~/services/data/task_repo'
+import { getAllTask,createTask,deleteTaskRepo, updateTaskRepo } from '~/services/data/task_repo'
 import type { Task } from '~/services/types/task'
 
 export const useTaskStore = defineStore('taskStore', {
@@ -36,15 +36,19 @@ export const useTaskStore = defineStore('taskStore', {
                 this.loading = false
             }
         },
-        /*
-        async updateTask(id_task: number, updatedTask: Partial<Task>) {
+        async updateTask(id_task: number, updatedData: Partial<Task>) {
             this.loading = true
             this.error = null
             try {
-                await updateTask(updatedTask as Task, id_task)
+                const taskToUpdate = this.task.find(t => t.id === id_task)
+                if (!taskToUpdate) {
+                    throw new Error('Tarea no encontrada')
+                }
+                const updatedTask = { ...taskToUpdate, ...updatedData }
+                await updateTaskRepo(updatedTask, id_task)
                 const index = this.task.findIndex(t => t.id === id_task)
                 if (index !== -1) {
-                this.task[index] = { ...this.task[index], ...updatedTask }
+                    this.task[index] = updatedTask
                 }
             } catch (e: any) {
                 this.error = e.message || 'Error al actualizar tarea'
@@ -53,12 +57,12 @@ export const useTaskStore = defineStore('taskStore', {
                 this.loading = false
             }
         },
-        */
         async deleteTask(id_task: number) {
             this.loading = true
             this.error = null
-            try {
-                await deleteTask(id_task)
+            try {                
+                await deleteTaskRepo(id_task)
+                console.log(`Tarea con id ${id_task} eliminada`)
                 this.task = this.task.filter(t => t.id !== id_task)
             } catch (e: any) {
                 this.error = e.message || 'Error al eliminar tarea'

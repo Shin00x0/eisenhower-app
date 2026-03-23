@@ -21,7 +21,7 @@ export const createTask = async (new_taks: Task) => {
         console.error(e)
     }
 }
-export const updateTask = async (task: Task, id_task: number) => {
+export const updateTaskRepo = async (task: Task, id_task: number) => {
     try {
         const { data, error} = await supabase.from('task').update(task).match({'id': id_task})
         if (error) throw error 
@@ -29,10 +29,11 @@ export const updateTask = async (task: Task, id_task: number) => {
         console.error(e)
     }
 }
-export const deleteTask = async (id_task: number) => {
+export const deleteTaskRepo = async (id_task: number) => {
     try {
         const { data, error} = await supabase.from('task').delete().match( {id: id_task})
         if (error) throw error 
+        console.log(`Tarea con id ${id_task} eliminada en la base de datos`)
     } catch (e) {
         console.error(e)
     }

@@ -1,5 +1,7 @@
 import supabase from "~/services/supabase_services"
 import type { User } from "~/services/types/user"
+
+
 export const useUserStore = defineStore('userStore', {
     state: () => ({
         currentIdGoogle: '',
@@ -8,8 +10,18 @@ export const useUserStore = defineStore('userStore', {
         active_error: false
     }),
     actions: {
-        async saveUserIdGoogle() {
-            // guardar en local storage aqui
+        async saveUserIdGoogle(idclient : string) {
+            this.currentIdGoogle = idclient;
+            const client = import.meta.client;
+            if(client) {
+                localStorage.setItem('userId', idclient);
+            }
+        },
+        async getUserIdGoogle() {
+            const client = import.meta.client;
+            if(client) {
+                this.currentIdGoogle = localStorage.getItem('userId') ?? '';
+            }
         },
         async fetchUser(userid: string) {
             if(userid == '') {
